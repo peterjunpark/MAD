@@ -46,29 +46,51 @@ do
 done
 echo "MODEL: $model ";
 
-# only for ROCM
-export HIP_FORCE_DEV_KERNARG=1
-export VLLM_USE_TRITON_FLASH_ATTN=0
-export VLLM_USE_ROCM_CUSTOM_PAGED_ATTN=1
-export VLLM_TUNE_GEMM=0
-
 # args
 model_org_name=(${model//// })
 model_name=${model_org_name[1]}
-dtype=$datatype
 tp=$numgpu
+
+# perf env setting
+export HIP_FORCE_DEV_KERNARG=1
+export VLLM_USE_ROCM_CUSTOM_PAGED_ATTN=1
+export VLLM_USE_TRITON_FLASH_ATTN=0
+export VLLM_INSTALL_PUNICA_KERNELS=1
+export TOKENIZERS_PARALLELISM=false
+export RAY_EXPERIMENTAL_NOSET_ROCR_VISIBLE_DEVICES=1
+export NCCL_MIN_NCHANNELS=112
+export VLLM_FP8_PADDING=1
+export VLLM_FP8_ACT_PADDING=1
+export VLLM_FP8_WEIGHT_PADDING=1
+export VLLM_FP8_REDUCE_CONV=1
+export VLLM_SCHED_PREFILL_KVC_FREEPCT=31.0
+
+if [ $tp -eq 1 ]; then
+    DIST_BE=" --enforce-eager "
+else
+    DIST_BE=" --distributed-executor-backend mp "
+fi
+
+if [[ $datatype = "float16" ]]; then
+    DTYPE=" --dtype float16 "	
+elif [[ $datatype == "float8" ]]; then
+    DTYPE=" --dtype float16 --quantization fp8 --kv-cache-dtype fp8 " 
+fi
+
+OPTION_LATENCY=" --gpu-memory-utilization 0.99 --num-scheduler-steps 10 "
+OPTION_THROUGHPUT=" --gpu-memory-utilization 0.99 --num-scheduler-steps 128 --max-num-seqs 1000 "
 
 # latency conditions
 Bat="1 2 4 8 16 32 64 128 256"
 InLatency="128 2048"
-OutLatency=128
+OutLatency="1 128 2048"
 
 # throughput conditions
 Req="256 2000"
 InThroughput="128 2048"
 OutThroughput="128 2048"
 
-report_dir="../reports_${dtype}"
+report_dir="reports_${datatype}"
 report_summary_dir="${report_dir}/summary"
 tool_latency="/app/vllm/benchmarks/benchmark_latency.py"
 tool_throughput="/app/vllm/benchmarks/benchmark_throughput.py"
@@ -78,39 +100,22 @@ n_itr=5
 mkdir -p $report_dir
 mkdir -p $report_summary_dir
 
+
 if [ "$scenario" == "latency" ] || [ "$scenario" == "all" ]; then
     echo "[INFO] LATENCY"
     mode="latency"
-    for inp in $InLatency;
+    for out in $OutLatency;
     do
-        out=1
-        for bat in $Bat;
+        for inp in $InLatency;
         do
-            outjson=${report_dir}/${model_name}_${mode}_prefill_bs${bat}_in${inp}_out${out}_${dtype}.json
-            outcsv=${report_summary_dir}/${model_name}_${mode}_report.csv
-            echo $model $mode $bat $tp $inp $out
-            if [ $tp -eq 1 ]; then
-                python3 $tool_latency --model $model --batch-size $bat -tp $tp --input-len $inp --output-len $out --num-iters-warmup $n_warm --num-iters $n_itr --trust-remote-code --dtype $dtype --enforce-eager --output-json $outjson
-            else
-                python3 $tool_latency --model $model --batch-size $bat -tp $tp --input-len $inp --output-len $out --num-iters-warmup $n_warm --num-iters $n_itr --trust-remote-code --dtype $dtype --output-json $outjson --distributed-executor-backend "mp"
-            fi
-            python3 $tool_report --mode ${mode} --model $model_name --batch-size $bat --tp $tp --input-len $inp --output-len $out --dtype $dtype --input-json $outjson --output-csv $outcsv
-        done
-    done
-    for bat in $Bat;
-    do
-        inp=1
-        for out in $OutLatency;
-        do
-            outjson=${report_dir}/${model_name}_${mode}_decoding_bs${bat}_in${inp}_out${out}_${dtype}.json
-            outcsv=${report_summary_dir}/${model_name}_${mode}_report.csv
-            echo $model $mode $bat $tp $inp $out
-            if [ $tp -eq 1 ]; then
-                python3 $tool_latency --model $model --batch-size $bat -tp $tp --input-len $inp --output-len $out --num-iters-warmup $n_warm --num-iters $n_itr --trust-remote-code --dtype $dtype --enforce-eager --output-json $outjson
-            else
-                python3 $tool_latency --model $model --batch-size $bat -tp $tp --input-len $inp --output-len $out --num-iters-warmup $n_warm --num-iters $n_itr --trust-remote-code --dtype $dtype --output-json $outjson --distributed-executor-backend "mp"
-            fi
-            python3 $tool_report --mode ${mode} --model $model_name --batch-size $bat --tp $tp --input-len $inp --output-len $out --dtype $dtype --input-json $outjson --output-csv $outcsv
+            for bat in $Bat;
+            do
+                outjson=${report_dir}/${model_name}_${mode}_decoding_bs${bat}_in${inp}_out${out}_${datatype}.json
+                outcsv=${report_summary_dir}/${model_name}_${mode}_report.csv
+                echo $model $mode $bat $tp $inp $out
+                python3 $tool_latency --model $model --batch-size $bat -tp $tp --input-len $inp --output-len $out --num-iters-warmup $n_warm --num-iters $n_itr --trust-remote-code --enforce-eager --output-json $outjson $DTYPE $DIST_BE $OPTION_LATENCY
+                python3 $tool_report --mode $mode --model $model_name --batch-size $bat --tp $tp --input-len $inp --output-len $out $dtype --input-json $outjson --output-csv $outcsv
+            done
         done
     done
 fi
@@ -124,15 +129,11 @@ if [ "$scenario" == "throughput" ] || [ "$scenario" == "all" ]; then
         do
             for inp in $InThroughput;
             do
-                outjson=${report_dir}/${model_name}_${mode}_req${req}_in${inp}_out${out}_${dtype}.json
+                outjson=${report_dir}/${model_name}_${mode}_req${req}_in${inp}_out${out}_${datatype}.json
                 outcsv=${report_summary_dir}/${model_name}_${mode}_report.csv
                 echo $model $mode $req $tp $inp $out
-                if [ $tp -eq 1 ]; then
-                    python3 $tool_throughput --model $model --num-prompts $req -tp $tp --input-len $inp --output-len $out --trust-remote-code --dtype $dtype --enforce-eager --output-json $outjson
-                else
-                    python3 $tool_throughput --model $model --num-prompts $req -tp $tp --input-len $inp --output-len $out --trust-remote-code --dtype $dtype --output-json $outjson --distributed-executor-backend "mp"
-                fi
-                python3 $tool_report --mode $mode --model $model_name --num-prompts $req --tp $tp --input-len $inp --output-len $out --dtype $dtype --input-json $outjson --output-csv $outcsv
+                python3 $tool_throughput --model $model --num-prompts $req -tp $tp --input-len $inp --output-len $out --trust-remote-code --output-json $outjson $DTYPE $DIST_BE $OPTION_THROUGHPUT
+                python3 $tool_report --mode $mode --model $model_name --num-prompts $req --tp $tp --input-len $inp --output-len $out $dtype --input-json $outjson --output-csv $outcsv
             done
         done
     done

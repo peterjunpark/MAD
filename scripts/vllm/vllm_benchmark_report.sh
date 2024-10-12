@@ -71,7 +71,7 @@ else
     DIST_BE=" --distributed-executor-backend mp "
 fi
 
-if [[ $datatype = "float16" ]]; then
+if [[ $datatype == "float16" ]]; then
     DTYPE=" --dtype float16 "	
 elif [[ $datatype == "float8" ]]; then
     DTYPE=" --dtype float16 --quantization fp8 --kv-cache-dtype fp8 " 

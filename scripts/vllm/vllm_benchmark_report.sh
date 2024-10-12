@@ -114,7 +114,7 @@ if [ "$scenario" == "latency" ] || [ "$scenario" == "all" ]; then
                 outcsv=${report_summary_dir}/${model_name}_${mode}_report.csv
                 echo $model $mode $bat $tp $inp $out
                 python3 $tool_latency --model $model --batch-size $bat -tp $tp --input-len $inp --output-len $out --num-iters-warmup $n_warm --num-iters $n_itr --trust-remote-code --enforce-eager --output-json $outjson $DTYPE $DIST_BE $OPTION_LATENCY
-                python3 $tool_report --mode $mode --model $model_name --batch-size $bat --tp $tp --input-len $inp --output-len $out $dtype --input-json $outjson --output-csv $outcsv
+                python3 $tool_report --mode $mode --model $model_name --batch-size $bat --tp $tp --input-len $inp --output-len $out $dtype --input-json $outjson --output-csv $outcsv --dtype datatype
             done
         done
     done
@@ -133,7 +133,7 @@ if [ "$scenario" == "throughput" ] || [ "$scenario" == "all" ]; then
                 outcsv=${report_summary_dir}/${model_name}_${mode}_report.csv
                 echo $model $mode $req $tp $inp $out
                 python3 $tool_throughput --model $model --num-prompts $req -tp $tp --input-len $inp --output-len $out --trust-remote-code --output-json $outjson $DTYPE $DIST_BE $OPTION_THROUGHPUT
-                python3 $tool_report --mode $mode --model $model_name --num-prompts $req --tp $tp --input-len $inp --output-len $out $dtype --input-json $outjson --output-csv $outcsv
+                python3 $tool_report --mode $mode --model $model_name --num-prompts $req --tp $tp --input-len $inp --output-len $out $dtype --input-json $outjson --output-csv $outcsv --dtype datatype
             done
         done
     done

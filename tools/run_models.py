@@ -359,7 +359,7 @@ def run_model(
         if model_url:
             docker.sh(f"git clone {model_url}")
         else:
-            docker.sh(f"mkdir {model_dir}")
+            docker.sh(f"mkdir -p {model_dir}")
 
         # Update the submodules
         docker.sh(f"git config --global --add safe.directory /myworkspace/{model_dir}")

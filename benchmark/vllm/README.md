@@ -89,8 +89,8 @@ Although the following eight models are pre-configured to collect latency and th
 | pyt_vllm_llama-3.1-405b     |
 | pyt_vllm_llama-2-7b         |
 | pyt_vllm_llama-2-70b        |
-| pyt_vllm_mistral-8x7b       |
-| pyt_vllm_mistral-8x22b      |
+| pyt_vllm_mixtral-8x7b       |
+| pyt_vllm_mixtral-8x22b      |
 | pyt_vllm_mistral-7b         |
 | pyt_vllm_qwen2-7b           |
 | pyt_vllm_qwen2-72b          |
@@ -99,8 +99,8 @@ Although the following eight models are pre-configured to collect latency and th
 | pyt_vllm_llama-3.1-8b_fp8   |
 | pyt_vllm_llama-3.1-70b_fp8  |
 | pyt_vllm_llama-3.1-405b_fp8 |
-| pyt_vllm_mistral-8x7b_fp8   |
-| pyt_vllm_mistral-8x22b_fp8  |
+| pyt_vllm_mixtral-8x7b_fp8   |
+| pyt_vllm_mixtral-8x22b_fp8  |
 
 ### Standalone benchmarking
 -----------------------------
@@ -147,8 +147,8 @@ export HF_TOKEN=$your_personal_hf_token
 |              | meta-llama/Meta-Llama-3.1-405B-Instruct | Llama 3.1 405B                                   |
 |              | meta-llama/Llama-2-7b-chat-hf           | Llama 2 7B                                       |
 |              | meta-llama/Llama-2-70b-chat-hf          | Llama 2 70B                                      |
-|              | mistralai/Mixtral-8x7B-Instruct-v0.1    | Mistral 8x7B                                     |
-|              | mistralai/Mixtral-8x22B-Instruct-v0.1   | Mistral 8x22B                                    |
+|              | mistralai/Mixtral-8x7B-Instruct-v0.1    | Mixtral 8x7B                                     |
+|              | mistralai/Mixtral-8x22B-Instruct-v0.1   | Mixtral 8x22B                                    |
 |              | mistralai/Mistral-7B-Instruct-v0.3      | Mistral 7B                                       |
 |              | Qwen/Qwen2-7B-Instruct                  | Qwen2 7B                                         |
 |              | Qwen/Qwen2-72B-Instruct                 | Qwen2 72B                                        |
@@ -157,10 +157,10 @@ export HF_TOKEN=$your_personal_hf_token
 | $model_repo  | amd/Meta-Llama-3.1-8B-Instruct-FP8-KV   | Llama 3.1 8B                                     |
 | (float8)     | amd/Meta-Llama-3.1-70B-Instruct-FP8-KV  | Llama 3.1 70B                                    |
 |              | amd/Meta-Llama-3.1-405B-Instruct-FP8-KV | Llama 3.1 405B                                   |
-|              | amd/Mixtral-8x7B-Instruct-v0.1-FP8-KV   | Mistral 8x7B                                     |
-|              | amd/Mixtral-8x22B-Instruct-v0.1-FP8-KV  | Mistral 8x22B                                    |
-| $num_gpu     | 1 or 8                                  | Number of GPUs.                                  |
-| $datatype    | float16, float8                         |                                                  |
+|              | amd/Mixtral-8x7B-Instruct-v0.1-FP8-KV   | Mixtral 8x7B                                     |
+|              | amd/Mixtral-8x22B-Instruct-v0.1-FP8-KV  | Mixtral 8x22B                                    |
+| $num_gpu     | 1 or 8                                  | Number of GPUs                                   |
+| $datatype    | float16, float8                         | Data type                                        |
 
 #### Run the benchmark tests on the MI300X accelerator 🏃
 
@@ -192,14 +192,13 @@ You can find the throughput report at *./reports_float8/summary/Meta-Llama-3.1-8
 
 -   throughput\_tot = requests \* (**input lengths + output lengths**) / elapsed\_time
 
--   throughput\_gen = requests \* **output lengths** / elapsed\_time
+-   throughput\_gen = requests \* **output lengths** / elapsed\_time
 
 ## References 🔎
 ----------
 
 For an overview of the optional performance features of vLLM with
-ROCm software, see
-<https://github.com/ROCm/vllm/blob/main/ROCm_performance.md>.
+ROCm software, see [ROCm performance](https://github.com/ROCm/vllm/blob/main/ROCm_performance.md).
 
 To learn more about the options for latency and throughput
 benchmark scripts, see
@@ -269,3 +268,26 @@ and other countries.    
 
 All other trademarks and copyrights are property of their respective
 owners and are only mentioned for informative purposes.   
+
+
+## Revision History 
+----------
+This release note summarizes notable changes since the previous docker release (September 4, 2024).
+
+-   The ROCm software version number was incremented from 6.2.0 to 6.2.1.
+
+-   The vLLM version number was incremented from 0.4.3 to 0.6.3.
+
+-   The PyTorch version number was incremented from 2.4.0 to 2.5.0.
+
+-   The float16 data type benchmark test was updated to include the following models: Llama 2 70B, Mixtral 8x7B, Mixtral 8X22B, and Qwen2 72B.
+
+-   float8 date type is available.
+
+-   The float8 data type benchmark test was added to include the following models: Llama 3.1 8B, Llama 3.1 70B, Llama 3.1 405B, Mixtral 8x7B, and Mixtral 8X22B.
+
+
+
+## Support 
+----------
+You can report bugs through our GitHub [issue tracker](https://github.com/ROCm/MAD/issues).

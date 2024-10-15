@@ -77,8 +77,8 @@ elif [[ $datatype == "float8" ]]; then
     DTYPE=" --dtype float16 --quantization fp8 --kv-cache-dtype fp8 " 
 fi
 
-OPTION_LATENCY=" --gpu-memory-utilization 0.99 --num-scheduler-steps 10 "
-OPTION_THROUGHPUT=" --gpu-memory-utilization 0.99 --num-scheduler-steps 128 "
+OPTION_LATENCY=" --gpu-memory-utilization 0.9 --num-scheduler-steps 10 "
+OPTION_THROUGHPUT=" --gpu-memory-utilization 0.9 --num-scheduler-steps 128 "
 
 # latency conditions
 Bat="1 2 4 8 16 32 64 128 256"

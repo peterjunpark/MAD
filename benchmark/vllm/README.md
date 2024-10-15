@@ -37,7 +37,7 @@ Users have two choices to reproduce the benchmark results.
 
 To optimize performance, disable automatic NUMA balancing. Otherwise, the GPU
 might hang until the periodic balancing is finalized. For further
-details, refer to the [AMD Instinct MI300X system optimization](https://rocmdocs.amd.com/en/latest/how-to/system-optimization/mi300x.html#disable-numa-auto-balancing) guide.
+details, refer to the [AMD Instinct MI300X system optimization](https://rocm.docs.amd.com/en/latest/how-to/system-optimization/mi300x.html#disable-numa-auto-balancing) guide.
 
 ```sh
 # disable automatic NUMA balancing
@@ -78,7 +78,8 @@ ROCm MAD launches a Docker container with the name `container_ci-pyt_vllm_llama-
 ~/MAD/reports_float16/
 ```
 
-Although the following eight models are pre-configured to collect latency and throughput performance data, users can also change the benchmarking parameters. Refer to the [Standalone benchmarking](#standalone-benchmarking) section.
+Although the following models are pre-configured to collect latency and throughput performance data,
+users can also change the benchmarking parameters. Refer to the [Standalone benchmarking](#standalone-benchmarking) section.
 
 #### Available models
 
@@ -125,15 +126,17 @@ cd MAD/scripts/vllm
 ./vllm_benchmark_report.sh -s $test_option -m $model_repo -g $num_gpu -d $datatype
 ```
 
--   Note: The input sequence length, output sequence length, and tensor parallel (TP) are already configured. You don't need to specify them with this script.
+>[!NOTE]
+>The input sequence length, output sequence length, and tensor parallel (TP) are already configured. You don't need to specify them with this script.
 
--   Note: If you encounter this error, pass your access-authorized Hugging Face token to the gated models.
-```sh
-OSError: You are trying to access a gated repo.
-
-# pass your HF_TOKEN
-export HF_TOKEN=$your_personal_hf_token
-```
+>[!NOTE]
+>If you encounter this error, pass your access-authorized Hugging Face token to the gated models.
+>```sh
+>OSError: You are trying to access a gated repo.
+>
+># pass your HF_TOKEN
+>export HF_TOKEN=$your_personal_hf_token
+>```
 
 #### Variables
 
@@ -166,33 +169,38 @@ export HF_TOKEN=$your_personal_hf_token
 
 Here are some examples and the test results:
 
--   Benchmark example - latency
- 
-Use this command to benchmark the latency of the Llama 3.1 8B model on one GPU with the float16 and float8 data type.
+- Benchmark example - latency
 
-```sh
-./vllm_benchmark_report.sh -s latency -m meta-llama/Meta-Llama-3.1-8B-Instruct -g 1 -d float16
-./vllm_benchmark_report.sh -s latency -m amd/Meta-Llama-3.1-8B-Instruct-FP8-KV -g 1 -d float8
-```
+  Use this command to benchmark the latency of the Llama 3.1 8B model on one GPU with the float16 and float8 data type.
 
-You can find the latency report at *./reports_float16/summary/Meta-Llama-3.1-8B-Instruct_latency_report.csv*.
-You can find the latency report at *./reports_float8/summary/Meta-Llama-3.1-8B-Instruct-FP8-KV_latency_report.csv*.
+  ```sh
+  ./vllm_benchmark_report.sh -s latency -m meta-llama/Meta-Llama-3.1-8B-Instruct -g 1 -d float16
+  ./vllm_benchmark_report.sh -s latency -m amd/Meta-Llama-3.1-8B-Instruct-FP8-KV -g 1 -d float8
+  ```
 
--   Benchmark example - throughput
+  The latency reports are available at:
 
-Use this command to benchmark the throughput of the Llama 3.1 8B model on one GPU with the float16 and float8 data type.
+  - `./reports_float16/summary/Meta-Llama-3.1-8B-Instruct_latency_report.csv`
+  - `./reports_float8/summary/Meta-Llama-3.1-8B-Instruct-FP8-KV_latency_report.csv`
 
-```sh
-./vllm_benchmark_report.sh -s throughput -m meta-llama/Meta-Llama-3.1-8B-Instruct -g 1 -d float16
-./vllm_benchmark_report.sh -s throughput -m amd/Meta-Llama-3.1-8B-Instruct-FP8-KV -g 1 -d float8
-```
+- Benchmark example - throughput
 
-You can find the throughput report at *./reports_float16/summary/Meta-Llama-3.1-8B-Instruct_throughput_report.csv*.
-You can find the throughput report at *./reports_float8/summary/Meta-Llama-3.1-8B-Instruct-FP8-KV_throughput_report.csv*.
+  Use this command to benchmark the throughput of the Llama 3.1 8B model on one GPU with the float16 and float8 data type.
 
--   throughput\_tot = requests \* (**input lengths + output lengths**) / elapsed\_time
+  ```sh
+  ./vllm_benchmark_report.sh -s throughput -m meta-llama/Meta-Llama-3.1-8B-Instruct -g 1 -d float16
+  ./vllm_benchmark_report.sh -s throughput -m amd/Meta-Llama-3.1-8B-Instruct-FP8-KV -g 1 -d float8
+  ```
 
--   throughput\_gen = requests \* **output lengths** / elapsed\_time
+  The throughput reports are available at:
+
+  - `./reports_float16/summary/Meta-Llama-3.1-8B-Instruct_throughput_report.csv`
+  - `./reports_float8/summary/Meta-Llama-3.1-8B-Instruct-FP8-KV_throughput_report.csv`
+
+  >[!NOTE]
+  >Throughput is calculated as:
+  >-   `throughput\_tot = requests \* (**input lengths + output lengths**) / elapsed\_time`
+  >-   `throughput\_gen = requests \* **output lengths** / elapsed\_time`
 
 ## References 🔎
 ----------
@@ -213,7 +221,7 @@ To learn how to optimize inference on LLMs, see the
 For a list of other ready-made Docker images for ROCm, see the 
 [ROCm Docker image support matrix](https://rocm.docs.amd.com/projects/install-on-linux/en/latest/reference/docker-image-support-matrix.html).
 
-## Licensing Information ⚠️
+## Licensing information ⚠️
 ---------------------
 
 Your use of this application is subject to the terms of the applicable
@@ -270,7 +278,7 @@ All other trademarks and copyrights are property of their respective
 owners and are only mentioned for informative purposes.   
 
 
-## Revision History 
+## Changelog
 ----------
 This release note summarizes notable changes since the previous docker release (September 4, 2024).
 
